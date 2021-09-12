@@ -17,6 +17,7 @@ public:
 	friend class EventHelper;
 private:
 	void newOutputCallback(void* data);
+	void outputDestroyedCallback(void* data);
 	void outputRenderCallback(void* data);
 
 	Display* display;
@@ -31,4 +32,5 @@ private:
 
 	wl_listener new_output;
 	wl_listener output_frame;
+	wl_listener output_destroyed;
 };

@@ -6,9 +6,9 @@ Server::Server() {
 	display = new Display();
 	this->event_loop = wl_display_get_event_loop(this->display->get());
 
-	//this->backend = wlr_backend_autocreate(this->display->get());
-	this->backend = wlr_wl_backend_create(this->display->get(), "wayland-0");
-	wlr_wl_output_create(this->backend);
+	this->backend = wlr_backend_autocreate(this->display->get());
+   //	this->backend = wlr_wl_backend_create(this->display->get(), "wayland-0");
+	//wlr_wl_output_create(this->backend);
 
 	this->renderer = wlr_backend_get_renderer(this->backend);
 	wlr_renderer_init_wl_display(this->renderer, this->display->get());
@@ -25,11 +25,17 @@ Server::Server() {
 	this->output_frame.notify =
 		&EventHelper::memberFunction<Server, wl_listener, &Server::output_frame, &Server::outputRenderCallback>;
 
+	this->output_destroyed.notify = 
+		&EventHelper::memberFunction<Server, wl_listener, &Server::output_destroyed, &Server::outputDestroyedCallback>;
+
 	shell = new XDGShell(display);
 }
 
 Server::~Server() {
 	std::cout << "Server destruct" << std::endl;
+	if (shell) {
+		delete shell;
+	}
 	if (display) {
 		delete display;
 	}
@@ -59,9 +65,10 @@ void Server::newOutputCallback(void* data) {
 	}
 
 	wl_signal_add(&new_output->events.frame, &this->output_frame);
+	wl_signal_add(&new_output->events.destroy, &output_destroyed);
 
 	outputs.emplace(OutputKey(new_output), new_output);
-	wlr_log(WLR_DEBUG, "NEW OUTPUT\tOutputs Size: %d", outputs.size());
+	wlr_log(WLR_DEBUG, "NEW OUTPUT\tOutputs Size: %ld", outputs.size());
 
 	wlr_output_layout_add_auto(layout, new_output);
 }
@@ -76,9 +83,6 @@ void Server::outputRenderCallback(void* data) {
 	} else {
 		throw "Could not find Output";
 	}
-	// wlr_log(WLR_INFO, "Frame Event");
-
-	// wlr_log(WLR_DEBUG, "OUTPUT RENDER\tOutputs Size: %d", outputs.size());
 
 	timespec now;
 	clock_gettime(CLOCK_MONOTONIC, &now);
@@ -89,4 +93,16 @@ void Server::outputRenderCallback(void* data) {
 
 		shell->renderViews(now, wl_output, layout, renderer);
 	});
+}
+
+void Server::outputDestroyedCallback(void* data) {
+	wlr_log(WLR_DEBUG, "Output Destroyed");
+	wlr_output* wl_output = (wlr_output*)data;
+	// Drop the Output object so we don't leak the memory
+	outputs.erase(OutputKey(wl_output));
+
+	// Could be a bad time we'll have to see
+	if (backend && wlr_backend_is_wl(backend) && outputs.empty()) {
+		
+	}
 }

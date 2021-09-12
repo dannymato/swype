@@ -25,7 +25,8 @@ private:
 	// Figure out how to actually do this
 	void onSurfaceDestroy(void* data);
 
-	static void renderSurface(wlr_surface* surface, timespec when, wlr_output* output, wlr_output_layout* layout, wlr_renderer* renderer);
+	static void renderSurface(wlr_surface* surface, timespec when, wlr_output* output, wlr_output_layout* layout,
+	 wlr_renderer* renderer, int x, int y);
 
 	XDGShell* shell; // Don't love this but gotta do it to setup destroying
 	wlr_xdg_surface* xdg_surface;
