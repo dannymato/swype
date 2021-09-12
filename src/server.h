@@ -3,6 +3,7 @@
 #include "display.h"
 #include "output.h"
 #include "xdg_shell.h"
+#include "cursor.h"
 
 #include <vector>
 #include <string>
@@ -27,6 +28,7 @@ private:
 	wlr_renderer* renderer;
 	wlr_output_layout* layout;
 	XDGShell* shell;
+	Cursor cursor;
 
 	const std::string test = "Server String";
 

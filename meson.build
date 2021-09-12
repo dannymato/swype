@@ -10,7 +10,7 @@ subproject('wlroots')
 subproject('wayland-protocols')
 deps = [dependency('wlroots'), dependency('wayland-server')]
 
-exe = executable('swipe', protocols + ['src/output.cpp', 'src/swipe.cpp', 'src/display.cpp', 'src/server.cpp', 'src/xdg_shell.cpp', 'src/view.cpp'],
+exe = executable('swipe', protocols + ['src/output.cpp', 'src/cursor.cpp', 'src/swipe.cpp', 'src/display.cpp', 'src/server.cpp', 'src/xdg_shell.cpp', 'src/view.cpp'],
   dependencies: deps,
   include_directories: include_directories('protocols'))
 

@@ -29,6 +29,11 @@ Server::Server() {
 		&EventHelper::memberFunction<Server, wl_listener, &Server::output_destroyed, &Server::outputDestroyedCallback>;
 
 	shell = new XDGShell(display);
+
+	cursor = Cursor(layout);
+	cursor.addMotionListener([this](PointerMotionEvent* motion) {
+		wlr_log(WLR_DEBUG, "Logging from the callback closure");
+	});
 }
 
 Server::~Server() {
