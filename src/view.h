@@ -1,14 +1,11 @@
 #pragma once
 
 #include "wl-roots-includes.h"
-#include "event_helper.h"
-#include "xdg_shell.h"
-
-class XDGShell;
+#include "event_handler.h"
 
 class View {
 public:
-	View(XDGShell* shell, wlr_xdg_surface* xdg_surface);
+	View(wlr_xdg_surface* xdg_surface);
 
 	bool operator==(const View& other) {
 		return other.uid == uid;
@@ -16,23 +13,24 @@ public:
 
 	inline bool is_mapped() { return mapped; }
 
+	wlr_surface* getSurface() { return xdg_surface->surface; }
+	wlr_xdg_surface* getXDGSurface() { return xdg_surface; }
+
 	void render(timespec when, wlr_output* output, wlr_output_layout* layout, wlr_renderer* renderer);
+	bool hasSurfaceAt(double lx, double ly, wlr_surface** surface, double* sx, double* sy);
+	void setActivated();
 
-	friend class EventHelper;
+	Ref<EventHandler<void*>> surfaceDestroyed() { return _surfaceDestroyed; }
+
 private:
-	void onSurfaceMap(void* data);
-	void onSurfaceUnmap(void* data);
-	// Figure out how to actually do this
-	void onSurfaceDestroy(void* data);
-
 	static void renderSurface(wlr_surface* surface, timespec when, wlr_output* output, wlr_output_layout* layout,
 	 wlr_renderer* renderer, int x, int y);
 
-	XDGShell* shell; // Don't love this but gotta do it to setup destroying
+	Ref<EventHandler<void*>> _surfaceMapped;
+	Ref<EventHandler<void*>> _surfaceUnmapped;
+	Ref<EventHandler<void*>> _surfaceDestroyed;
+
 	wlr_xdg_surface* xdg_surface;
-	wl_listener surface_mapped;
-	wl_listener surface_unmapped;
-	wl_listener surface_destroyed;
 	bool mapped;
 	int x, y;
 	uint64_t uid;

@@ -1,45 +1,25 @@
 #include "view.h"
 #include "util.h"
 
-View::View(XDGShell* shell, wlr_xdg_surface* xdg_surface) 
-	:  shell(shell), xdg_surface(xdg_surface), uid(UID::GenUID()) {
+View::View(wlr_xdg_surface* xdg_surface)
+	: xdg_surface(xdg_surface), uid(UID::GenUID()) {
 
-	surface_mapped.notify =
-		&EventHelper::memberFunction<View, wl_listener, &View::surface_mapped, &View::onSurfaceMap>;
-	wl_signal_add(&xdg_surface->events.map, &surface_mapped);
+		_surfaceMapped = CreateRef<EventHandler<void*>>(&xdg_surface->events.map);
+		_surfaceMapped->addHandler([this](auto _) { mapped = true; });
 
-	surface_unmapped.notify =
-		&EventHelper::memberFunction<View, wl_listener, &View::surface_unmapped, &View::onSurfaceUnmap>;
-	wl_signal_add(&xdg_surface->events.unmap, &surface_unmapped);
+		_surfaceUnmapped = CreateRef<EventHandler<void*>>(&xdg_surface->events.unmap);
+		_surfaceUnmapped->addHandler([this](auto _) { mapped = false; });
 
-	surface_destroyed.notify =
-		&EventHelper::memberFunction<View, wl_listener, &View::surface_destroyed, &View::onSurfaceDestroy>;
-	wl_signal_add(&xdg_surface->events.destroy, &surface_destroyed);
+		_surfaceDestroyed = CreateRef<EventHandler<void*>>(&xdg_surface->events.destroy);
 }
 
-void View::onSurfaceMap(void* _) {
-	wlr_log(WLR_DEBUG, "Surface Mapped UID: %li", uid);
-	mapped = true;
-}
-
-void View::onSurfaceUnmap(void* _) {
-	wlr_log(WLR_DEBUG, "Surface Unmapped UID: %li", uid);
-	mapped = false;
-}
-
-void View::onSurfaceDestroy(void* _) {
-	wlr_log(WLR_DEBUG, "Surface Destroyed UID: %li", uid);
-	shell->removeView(this);
-}
-
-// TODO: Find out about sx and sy stuff will probably render in the wrong place now
 void View::render(timespec when, wlr_output* output, wlr_output_layout* layout, wlr_renderer* renderer) {
-	
+
 	renderSurface(xdg_surface->surface, when, output, layout, renderer, 0, 0);
 
 }
 
-void View::renderSurface(wlr_surface* surface, timespec when, wlr_output* output, 
+void View::renderSurface(wlr_surface* surface, timespec when, wlr_output* output,
 	wlr_output_layout* layout, wlr_renderer* renderer, int x, int y) {
 
 	wlr_subsurface* subsurface;
@@ -87,3 +67,23 @@ void View::renderSurface(wlr_surface* surface, timespec when, wlr_output* output
 
 }
 
+bool View::hasSurfaceAt(double lx, double ly, wlr_surface** surface, double* sx, double* sy) {
+	double view_sx = lx - x;
+	double view_sy = ly - y;
+
+	double _sx, _sy;
+	wlr_surface* _surface = nullptr;
+	_surface = wlr_xdg_surface_surface_at(xdg_surface, view_sx, view_sy, &_sx, &_sy);
+
+	if (_surface != nullptr) {
+		*sx = _sx;
+		*sy = _sy;
+		*surface = _surface;
+		return true;
+	}
+	return false;
+}
+
+void View::setActivated() {
+	wlr_xdg_toplevel_set_activated(xdg_surface, true);
+}

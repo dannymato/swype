@@ -1,14 +1,20 @@
 #pragma once
 #include "wl-roots-includes.h"
+#include "event_handler.h"
+#include "util.h"
 #include <functional>
 #include <string_view>
+#include <memory>
 
 class EventHelper;
 
 class Output {
 public:
 	Output(wlr_output* output);
-	friend class EventHelper;
+
+	Ref<EventHandler<wlr_output>> destroyed() { return _destroyed; }
+	Ref<EventHandler<wlr_output>> frame() { return _frame; }
+
 	friend class Server;
 
 private:
@@ -16,7 +22,8 @@ private:
 	inline const std::pair<int, int> effectiveResolution();
 
 	wlr_output* output;
-	wl_listener frame;
+	Ref<EventHandler<wlr_output>> _destroyed;
+	Ref<EventHandler<wlr_output>> _frame;
 };
 
 struct OutputKey {

@@ -4,7 +4,10 @@
 #include "event_helper.h"
 
 Output::Output(wlr_output* output) 
-: output(output) {}
+: output(output) {
+	_destroyed = CreateRef<EventHandler<wlr_output>>(&output->events.destroy);
+	_frame = CreateRef<EventHandler<wlr_output>>(&output->events.frame);
+}
 
 void Output::render(wlr_renderer* renderer, std::function<void()> renderAction) {
 	if (!wlr_output_attach_render(output, nullptr))

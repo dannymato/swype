@@ -4,37 +4,33 @@
 Cursor::Cursor(wlr_output_layout* layout) {
 	cursor = wlr_cursor_create();
 	wlr_cursor_attach_output_layout(cursor, layout);
-	motion.notify = &EventHelper::memberFunction<Cursor, wl_listener, &Cursor::motion, &Cursor::motionCallback>;
-	addMotionListener(&motion);
+
+	xcursor_manager = wlr_xcursor_manager_create(nullptr, 24);
+	wlr_xcursor_manager_load(xcursor_manager, 1);
+	
+	_motionHandler = CreateRef<EventHandler<PointerMotionEvent>>(&cursor->events.motion);
+	_absoluteMotionHandler = CreateRef<EventHandler<AbsolutePointerMotionEvent>>(&cursor->events.motion_absolute);
+	_buttonHandler = CreateRef<EventHandler<PointerButtonEvent>>(&cursor->events.button);
+	_axisHandler = CreateRef<EventHandler<PointerAxisEvent>>(&cursor->events.axis);
 }
 
-void Cursor::addMotionListener(wl_listener* listener) {
-	wl_signal_add(&cursor->events.motion, listener);
+void Cursor::addInputDevice(wlr_input_device* device) {
+	wlr_cursor_attach_input_device(cursor, device);
 }
 
-void Cursor::addAbsoluteMotionListener(wl_listener* listener) {
-	wl_signal_add(&cursor->events.motion_absolute, listener);
+void Cursor::setXCursorImage(const char* image) {
+	wlr_xcursor_manager_set_cursor_image(xcursor_manager, image, cursor);
 }
 
-HandlerID Cursor::addMotionListener(MotionCallback callback) {
-	HandlerID newID = UID::GenUID();
-	motionCallbacks.emplace_back(std::make_pair(newID, callback));
-	return newID;
+void Cursor::setXCursorImage(const std::string& image) {
+	setXCursorImage(image.c_str());
 }
 
-// Returns true if the listener was found and removed
-bool Cursor::removeMotionListener(HandlerID id) {
-	auto initSize = motionCallbacks.size();
-	motionCallbacks.remove_if([id](auto handler){ return id == handler.first; });
-	return initSize != motionCallbacks.size();
+void Cursor::move(wlr_input_device* device, const double x, const double y) {
+	wlr_cursor_move(cursor, device, x, y);
 }
 
-void Cursor::motionCallback(void* data) {
-	PointerMotionEvent* eventData = (PointerMotionEvent*)data;
-	wlr_cursor_move(cursor, eventData->device,
-		eventData->delta_x, eventData->delta_y);
-	for (auto &[id, func] : motionCallbacks) {
-		func(eventData);
-	}
+void Cursor::moveAbsolute(wlr_input_device* device, const double x, const double y) {
+	wlr_cursor_warp_absolute(cursor, device, x, y);
 }
 
