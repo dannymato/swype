@@ -28,17 +28,21 @@ Server::Server() {
 	wl_signal_add(&backend->events.new_output, &new_output);
 
 	shell = new XDGShell(display);
-
 	cursor = new Cursor(layout);
+
+	shell->surfaceRequestMove()->AddHandler([this] (View& view) {
+		wlr_log(WLR_DEBUG, "Surface Requested Move");
+		_mouseState = std::make_unique<MoveState>(view, *cursor);
+	});
 	cursor->motionHandler()->addHandler([this](PointerMotionEvent* motion) {
 		cursor->move(motion->device, motion->delta_x, motion->delta_y);
-		wlr_log(WLR_DEBUG, "Relative Motion %lf.3, %lf.3", cursor->x(), cursor->y());
+		//wlr_log(WLR_DEBUG, "Relative Motion %lf.3, %lf.3", cursor->x(), cursor->y());
 		handleMouseMovement(motion->time_msec);
 	});
 
 	cursor->absoluteMotionHandler()->addHandler([this](AbsolutePointerMotionEvent* event) {
 		cursor->moveAbsolute(event->device, event->x, event->y);
-		wlr_log(WLR_DEBUG, "Absolute motion %lf.3, %lf.3", cursor->x(), cursor->y());
+		//wlr_log(WLR_DEBUG, "Absolute motion %lf.3, %lf.3", cursor->x(), cursor->y());
 		handleMouseMovement(event->time_msec);
 	});
 
@@ -50,7 +54,10 @@ Server::Server() {
 			auto view = shell->findViewAt(cursor, &surface, &sx, &sy);
 			if (view) {
 				seat->focusView(view->get(), surface);
+				shell->moveViewToTop(view->get());
 			}
+		} else if (event->isReleased()) {
+			_mouseState = std::make_unique<PassthroughState>();
 		}
 	});
 
@@ -58,6 +65,8 @@ Server::Server() {
 	_newInput->addHandler(std::bind(&Server::newInputCallback, this, std::placeholders::_1));
 
 	seat = std::make_unique<Seat>(display->createSeat());
+
+	_mouseState = std::make_unique<PassthroughState>();
 }
 
 Server::~Server() {
@@ -203,6 +212,16 @@ void Server::handleModifiers(const Keyboard& keyboard, void* nothing) {
 }
 
 void Server::handleMouseMovement(uint32_t time) {
+	switch (_mouseState->getType())
+	{
+	case Resize:
+	case Move:
+		// Don't want to pass through any other events
+		_mouseState->update(*cursor);
+		return;
+	default:
+		break;
+	}
 	double sx, sy;
 	wlr_surface* surface;
 	auto view = shell->findViewAt(cursor->x(), cursor->y(), &surface, &sx, &sy);

@@ -24,6 +24,7 @@ srcfiles = [
 
 exe = executable('swipe', protocols + srcfiles,
   dependencies: deps,
-  include_directories: include_directories('protocols'))
+  include_directories: include_directories('protocols'),
+  override_options: ['cpp_std=c++20'])
 
 test('basic', exe)

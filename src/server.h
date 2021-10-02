@@ -6,6 +6,7 @@
 #include "cursor.h"
 #include "keyboard.h"
 #include "event_handler.h"
+#include "state.h"
 
 #include <forward_list>
 #include <string>
@@ -40,7 +41,7 @@ private:
 	Cursor* cursor;
 	std::forward_list<Keyboard> keyboards;
 	std::unique_ptr<Seat> seat;
-	const std::string test = "Server String";
+	std::unique_ptr<MouseState> _mouseState;
 
 	Ref<EventHandler<wlr_input_device>> _newInput;
 

@@ -5,6 +5,7 @@
 #include "event_helper.h"
 #include "display.h"
 #include "event_handler.h"
+#include "event_signal.h"
 #include "cursor.h"
 
 #include <list>
@@ -23,6 +24,8 @@ public:
 	std::optional<std::reference_wrapper<View>> findViewAt(double lx, double ly, wlr_surface** surface, double* sx, double* sy);
 	void moveViewToTop(const View& view);
 
+	Ref<EventSignal<View&>> surfaceRequestMove() { return _surfaceRequestMove; }
+
 	friend class EventHandler<void*>;
 private:
 	void onNewSurface(wlr_xdg_surface* data);
@@ -31,4 +34,5 @@ private:
 	wl_listener new_xdg_surface;
 	std::list<View> views;
 	Ref<EventHandler<wlr_xdg_surface>> newSurfaceHandler;
+	Ref<EventSignal<View&>> _surfaceRequestMove;
 };

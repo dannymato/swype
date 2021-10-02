@@ -2,11 +2,13 @@
 #include <functional>
 #include <algorithm>
 #include <iterator>
+#include <ranges>
 
 XDGShell::XDGShell(Display* display) {
 	xdg_shell = wlr_xdg_shell_create(display->get());
 	newSurfaceHandler = CreateRef<EventHandler<wlr_xdg_surface>>(&xdg_shell->events.new_surface);
 	newSurfaceHandler->addHandler(std::bind(&XDGShell::onNewSurface, this, std::placeholders::_1));
+	_surfaceRequestMove = CreateRef<EventSignal<View&>>();
 }
 
 void XDGShell::onNewSurface(wlr_xdg_surface* xdg_surface) {
@@ -20,10 +22,14 @@ void XDGShell::onNewSurface(wlr_xdg_surface* xdg_surface) {
 	view.surfaceDestroyed()->addHandler([view, this] (void* _) {
 		views.remove(view);
 	});
+
+	view.surfaceRequestMove()->addHandler([view, this] (void* _) mutable {
+		_surfaceRequestMove->signalEvent(view);
+	});
 }
 
 void XDGShell::renderViews(timespec when, wlr_output* output, wlr_output_layout* layout, wlr_renderer* renderer) {
-	for (auto& view : views) {
+	for (auto& view : std::ranges::reverse_view(views)) {
 		if (view.is_mapped()) {
 			view.render(when, output, layout, renderer);
 		}
