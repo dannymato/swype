@@ -18,13 +18,16 @@ class XDGShell {
 public:
 	XDGShell(Display* display);
 
-	void removeView(View* view);
+	void removeView(Ref<View> view);
 	void renderViews(timespec when, wlr_output* output, wlr_output_layout* layout, wlr_renderer* renderer);
-	std::optional<std::reference_wrapper<View>> findViewAt(Cursor* cursor, wlr_surface** surface, double* sx, double* sy);
-	std::optional<std::reference_wrapper<View>> findViewAt(double lx, double ly, wlr_surface** surface, double* sx, double* sy);
-	void moveViewToTop(const View& view);
+	std::optional<Ref<View>> findViewAt(Ref<Cursor> cursor, wlr_surface** surface, double* sx, double* sy);
+	std::optional<Ref<View>> findViewAt(double lx, double ly, wlr_surface** surface, double* sx, double* sy);
+	std::optional<Ref<View>> topView();
+	void moveViewToTop(Ref<View> view);
+	void clearActivated();
 
-	Ref<EventSignal<View&>> surfaceRequestMove() { return _surfaceRequestMove; }
+	Ref<EventSignal<Ref<View>>> surfaceRequestMove() { return _surfaceRequestMove; }
+	Ref<EventHandler<wlr_xdg_surface>> newSurfaceHandler() { return _newSurfaceHandler; }
 
 	friend class EventHandler<void*>;
 private:
@@ -32,7 +35,7 @@ private:
 
 	wlr_xdg_shell* xdg_shell;
 	wl_listener new_xdg_surface;
-	std::list<View> views;
-	Ref<EventHandler<wlr_xdg_surface>> newSurfaceHandler;
-	Ref<EventSignal<View&>> _surfaceRequestMove;
+	std::list<Ref<View>> views;
+	Ref<EventHandler<wlr_xdg_surface>> _newSurfaceHandler;
+	Ref<EventSignal<Ref<View>>> _surfaceRequestMove;
 };

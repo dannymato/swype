@@ -1,5 +1,6 @@
 #include "server.h"
 #include "event_helper.h"
+#include "command.h"
 #include <iostream>
 #include <functional>
 #include <memory>
@@ -27,13 +28,24 @@ Server::Server() {
 		&EventHelper::memberFunction<Server, wl_listener, &Server::new_output, &Server::newOutputCallback>;
 	wl_signal_add(&backend->events.new_output, &new_output);
 
-	shell = new XDGShell(display);
-	cursor = new Cursor(layout);
+	shell = std::make_unique<XDGShell>(display);
+	cursor = CreateRef<Cursor>(layout);
 
-	shell->surfaceRequestMove()->AddHandler([this] (View& view) {
+	shell->surfaceRequestMove()->AddHandler([this] (Ref<View> view) {
 		wlr_log(WLR_DEBUG, "Surface Requested Move");
 		_mouseState = std::make_unique<MoveState>(view, *cursor);
 	});
+
+	shell->newSurfaceHandler()->addHandler([this](wlr_xdg_surface* surface) {
+		if (surface->role != WLR_XDG_SURFACE_ROLE_TOPLEVEL)
+			return;
+
+		auto view = shell->topView();
+		if (view) {
+			seat->focusView(*view, surface->surface);
+		}
+	});
+
 	cursor->motionHandler()->addHandler([this](PointerMotionEvent* motion) {
 		cursor->move(motion->device, motion->delta_x, motion->delta_y);
 		//wlr_log(WLR_DEBUG, "Relative Motion %lf.3, %lf.3", cursor->x(), cursor->y());
@@ -51,14 +63,22 @@ Server::Server() {
 		if (event->isPressed()) {
 			double sx, sy;
 			wlr_surface* surface;
+			// Returns an optional
 			auto view = shell->findViewAt(cursor, &surface, &sx, &sy);
 			if (view) {
-				seat->focusView(view->get(), surface);
-				shell->moveViewToTop(view->get());
+				seat->focusView(*view, surface);
+				shell->moveViewToTop(*view);
+			}
+			else {
+				shell->clearActivated();
 			}
 		} else if (event->isReleased()) {
 			_mouseState = std::make_unique<PassthroughState>();
 		}
+	});
+
+	cursor->axisHandler()->addHandler([this](PointerAxisEvent* event) {
+		seat->notifyAxis(event);
 	});
 
 	_newInput = CreateRef<EventHandler<wlr_input_device>>(&backend->events.new_input);
@@ -72,9 +92,6 @@ Server::Server() {
 Server::~Server() {
 	wlr_log(WLR_DEBUG, "Server Destruction");
 	display->destroyClients();
-	if (shell) {
-		delete shell;
-	}
 	if (display) {
 		delete display;
 	}
@@ -198,8 +215,9 @@ bool Server::handleKeybindings(xkb_keysym_t sym) {
 	case XKB_KEY_Escape:
 		display->stop();
 		break;
-	case XKB_KEY_F1:
-		// Don't know what this is supposed to do
+	case XKB_KEY_Return:
+		// Just for now but will hopefully by configurable
+		Command::Exec("konsole");
 		break;
 	default:
 		return false;

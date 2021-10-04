@@ -44,22 +44,21 @@ private:
 class MoveState : public MouseState {
 
 public:
-	MoveState(View& view, const Cursor& cursor) : _grabbedView(view) {
+	MoveState(Ref<View> view, const Cursor& cursor) : _grabbedView(view) {
 		type = Move;
-		_originX = cursor.x() - view.x();
-		_originY = cursor.y() - view.y();
+		_originX = cursor.x() - view->x();
+		_originY = cursor.y() - view->y();
 	}
 
 	void update(const Cursor& cursor) override {
-		_grabbedView.move(cursor.x() - _originX, cursor.y() - _originY);
-		wlr_log(WLR_DEBUG, "View Coords: (%d, %d)", _grabbedView.x(), _grabbedView.y());
+		_grabbedView->move(cursor.x() - _originX, cursor.y() - _originY);
 	}
 
 
 private:
 	double _originX;
 	double _originY;
-	View& _grabbedView;
+	Ref<View> _grabbedView;
 };
 
 class PassthroughState : public MouseState {

@@ -63,7 +63,6 @@ void View::renderSubsurface(wlr_surface* subsurface, timespec when, wlr_output* 
 	);
 	ox += x;
 	oy += y;
-	wlr_log(WLR_DEBUG, "View Coords (%lf, %lf)", ox, oy);
 
 	wlr_box box = {
 		.x = (int)(ox * output->scale),
@@ -99,8 +98,14 @@ bool View::hasSurfaceAt(double lx, double ly, wlr_surface** surface, double* sx,
 	return false;
 }
 
-void View::setActivated() {
+void View::activate() {
 	wlr_xdg_toplevel_set_activated(xdg_surface, true);
+	activated = true;
+}
+
+void View::deactivate() {
+	wlr_xdg_toplevel_set_activated(xdg_surface, false);
+	activated = false;
 }
 
 void View::move(int x, int y) {

@@ -1,6 +1,7 @@
 #pragma once
 #include "wl-roots-includes.h"
 #include "util.h"
+#include "cursor.h"
 #include "keyboard.h"
 #include "event_handler.h"
 #include "view.h"
@@ -27,7 +28,10 @@ public:
 	void notifyMotion(uint32_t time, double sx, double sy);
 	void clearPointerFocus();
 	void notifyButton(uint32_t timeMSec, uint32_t button, wlr_button_state state);
-	void focusView(View& view, wlr_surface* surface);
+	void notifyAxis(PointerAxisEvent* event);
+	void notifyAxis(uint32_t timeMSec, wlr_axis_orientation orientation, double value,
+	int32_t discreteValue, wlr_axis_source source);
+	void focusView(Ref<View> view, wlr_surface* surface);
 
 private:
 

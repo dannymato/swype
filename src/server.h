@@ -37,8 +37,8 @@ private:
 	wlr_backend* backend;
 	wlr_renderer* renderer;
 	wlr_output_layout* layout;
-	XDGShell* shell;
-	Cursor* cursor;
+	std::unique_ptr<XDGShell> shell;
+	Ref<Cursor> cursor;
 	std::forward_list<Keyboard> keyboards;
 	std::unique_ptr<Seat> seat;
 	std::unique_ptr<MouseState> _mouseState;

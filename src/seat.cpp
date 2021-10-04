@@ -38,7 +38,7 @@ void Seat::clearPointerFocus() {
 	wlr_seat_pointer_clear_focus(seat);
 }
 
-void Seat::focusView(View& view, wlr_surface* surface) {
+void Seat::focusView(Ref<View> view, wlr_surface* surface) {
 	wlr_surface* prev_surface = seat->keyboard_state.focused_surface;
 	if (surface == prev_surface)
 		return;
@@ -49,12 +49,23 @@ void Seat::focusView(View& view, wlr_surface* surface) {
 	}
 	wlr_keyboard* keyboard = wlr_seat_get_keyboard(seat);
 
-	view.setActivated();
 
-	wlr_seat_keyboard_notify_enter(seat, view.getSurface(), keyboard->keycodes,
+	if (!view->isActivated()) {
+		view->activate();
+	}
+	wlr_seat_keyboard_notify_enter(seat, surface, keyboard->keycodes,
 		keyboard->num_keycodes, &keyboard->modifiers);
 }
 
 void Seat::notifyButton(uint32_t timeMSec, uint32_t button, wlr_button_state state) {
 	wlr_seat_pointer_notify_button(seat, timeMSec, button, state);
+}
+
+void Seat::notifyAxis(uint32_t timeMSec, wlr_axis_orientation orientation, double value,
+	int32_t discreteValue, wlr_axis_source source) {
+	wlr_seat_pointer_notify_axis(seat, timeMSec, orientation, value, discreteValue, source);
+}
+
+void Seat::notifyAxis(PointerAxisEvent* event) {
+	notifyAxis(event->time_msec, event->orientation, event->delta, event->delta_discrete, event->source);
 }

@@ -14,13 +14,15 @@ public:
 	inline bool is_mapped() { return mapped; }
 	int x() const { return _x; }
 	int y() const { return _y; }
+	inline bool isActivated() { return activated;	}
 
 	wlr_surface* getSurface() { return xdg_surface->surface; }
 	wlr_xdg_surface* getXDGSurface() { return xdg_surface; }
 
 	void render(timespec when, wlr_output* output, wlr_output_layout* layout, wlr_renderer* renderer);
 	bool hasSurfaceAt(double lx, double ly, wlr_surface** surface, double* sx, double* sy);
-	void setActivated();
+	void activate();
+	void deactivate();
 	void move(int x, int y);
 	void move (double x, double y);
 
@@ -44,4 +46,5 @@ private:
 	int _x = 0;
 	int _y = 0;
 	uint64_t uid;
+	bool activated = false;
 };
