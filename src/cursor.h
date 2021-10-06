@@ -1,6 +1,7 @@
 #pragma once
 #include "wl-roots-includes.h"
 #include "event_handler.h"
+
 #include <list>
 #include <string>
 
@@ -10,11 +11,11 @@ class AbsolutePointerMotionEvent :
 
 class PointerButtonEvent : public wlr_event_pointer_button {
 public:
-	bool isPressed() {
+	bool isPressed() const {
 		return state == WLR_BUTTON_PRESSED;
 	}
 
-	bool isReleased() {
+	bool isReleased() const {
 		return state == WLR_BUTTON_RELEASED;
 	}
 

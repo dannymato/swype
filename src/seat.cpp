@@ -50,8 +50,8 @@ void Seat::focusView(Ref<View> view, wlr_surface* surface) {
 	wlr_keyboard* keyboard = wlr_seat_get_keyboard(seat);
 
 
-	if (!view->isActivated()) {
-		view->activate();
+	if (!view->isFocused()) {
+		view->focus();
 	}
 	wlr_seat_keyboard_notify_enter(seat, surface, keyboard->keycodes,
 		keyboard->num_keycodes, &keyboard->modifiers);

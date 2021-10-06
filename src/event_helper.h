@@ -1,14 +1,9 @@
 #pragma once
-#include <memory>
 #include <iostream>
-#include "wl-roots-includes.h"
+#include <memory>
 
 class EventHelper {
 public:
-    // static void outputFrame(wl_listener* listener, void* data) {
-    //     Output* output = wl_container_of(listener, output, frame);
-    //     output->onFrameEvent(data);
-    // }
     template <typename T, typename M> static M get_member_type(M T::*);
     template <typename T, typename M> static T get_class_type(M T::*);
 
@@ -27,14 +22,13 @@ public:
 
     template <typename T, typename R, R T::*M, void(T::*f)(void*)>
     static void memberFunction(wl_listener * listener, void* data) {
-        // std::cout << "callback called" << std::endl;
-        T* t = (T*)((char*)listener - OFFSET_OF(M));
+        T* t = container_of<T, R, M>(listener);
         (t->*f)(data);
     }
 
     template<typename T, typename R, R T::*M>
     static T* container_of(R* ptr) {
-        (T*)((char*)ptr - OFFSET_OF(M));
+        return (T*)((char*)ptr - OFFSET_OF(M));
     }
 
 };

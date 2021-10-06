@@ -4,9 +4,6 @@
 #include "util.h"
 #include <functional>
 #include <string_view>
-#include <memory>
-
-class EventHelper;
 
 class Output {
 public:
@@ -28,7 +25,7 @@ private:
 
 struct OutputKey {
 
-	OutputKey(wlr_output* output) : 
+	OutputKey(wlr_output* output) :
 		OutputKey(output->make, output-> model, output->serial) {}
 
 	OutputKey(char* make, char* model, char* serial)

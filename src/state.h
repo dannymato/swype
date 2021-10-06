@@ -23,21 +23,20 @@ protected:
 class ResizeState : public MouseState {
 public:
 
-	ResizeState(View& view, const Cursor& cursor, uint32_t edges)
+	ResizeState(Ref<View> view, const Cursor& cursor, uint32_t edges)
 		: grabbedView(view), _edges(edges) {
 		type = Resize;
-		_originX = cursor.x() - view.x();
+		_originX = cursor.x() - view->x();
 	}
 
 	void update(const Cursor& cursor) {
 
 	}
 
-
 private:
 	double _originX;
 	double _originY;
-	View& grabbedView;
+	Ref<View> grabbedView;
 	uint32_t _edges;
 };
 
@@ -54,7 +53,6 @@ public:
 		_grabbedView->move(cursor.x() - _originX, cursor.y() - _originY);
 	}
 
-
 private:
 	double _originX;
 	double _originY;
@@ -66,6 +64,6 @@ class PassthroughState : public MouseState {
 	PassthroughState() {
 		type = Passthrough;
 	}
-	void update(const Cursor& cursor) override {}
+	void update([[maybe_unused]] const Cursor& cursor) override {}
 
 };

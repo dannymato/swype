@@ -4,15 +4,15 @@
 View::View(wlr_xdg_surface* xdg_surface)
 	: xdg_surface(xdg_surface), uid(UID::GenUID()) {
 
-		_surfaceMapped = CreateRef<EventHandler<void*>>(&xdg_surface->events.map);
-		_surfaceMapped->addHandler([this](auto _) { mapped = true; });
+	_surfaceMapped = CreateRef<EventHandler<void*>>(&xdg_surface->events.map);
+	_surfaceMapped->addHandler([this]([[maybe_unused]] auto _) { mapped = true; });
 
-		_surfaceUnmapped = CreateRef<EventHandler<void*>>(&xdg_surface->events.unmap);
-		_surfaceUnmapped->addHandler([this](auto _) { mapped = false; });
+	_surfaceUnmapped = CreateRef<EventHandler<void*>>(&xdg_surface->events.unmap);
+	_surfaceUnmapped->addHandler([this]([[maybe_unused]] auto _) { mapped = false; });
 
-		_surfaceDestroyed = CreateRef<EventHandler<void*>>(&xdg_surface->events.destroy);
+	_surfaceDestroyed = CreateRef<EventHandler<void*>>(&xdg_surface->events.destroy);
 
-		_surfaceRequestMove = CreateRef<EventHandler<void*>>(&xdg_surface->toplevel->events.request_move);
+	_surfaceRequestMove = CreateRef<EventHandler<void*>>(&xdg_surface->toplevel->events.request_move);
 }
 
 void View::render(timespec when, wlr_output* output, wlr_output_layout* layout, wlr_renderer* renderer) {
@@ -46,7 +46,6 @@ void View::renderSurface(wlr_surface* surface, timespec when, wlr_output* output
 
 		renderSurface(subsurface->surface, when, output, layout, renderer, x + sx, y + sy);
 	}
-
 }
 
 void View::renderSubsurface(wlr_surface* subsurface, timespec when, wlr_output* output,
@@ -98,14 +97,18 @@ bool View::hasSurfaceAt(double lx, double ly, wlr_surface** surface, double* sx,
 	return false;
 }
 
-void View::activate() {
+void View::focus() {
 	wlr_xdg_toplevel_set_activated(xdg_surface, true);
 	activated = true;
 }
 
-void View::deactivate() {
+void View::defocus() {
 	wlr_xdg_toplevel_set_activated(xdg_surface, false);
 	activated = false;
+}
+
+void View::requestClose() {
+	wlr_xdg_toplevel_send_close(xdg_surface);
 }
 
 void View::move(int x, int y) {

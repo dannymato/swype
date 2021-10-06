@@ -1,6 +1,7 @@
 #include "xdg_shell.h"
-#include <functional>
+
 #include <algorithm>
+#include <functional>
 #include <iterator>
 #include <ranges>
 
@@ -8,7 +9,14 @@ XDGShell::XDGShell(Display* display) {
 	xdg_shell = wlr_xdg_shell_create(display->get());
 	_newSurfaceHandler = CreateRef<EventHandler<wlr_xdg_surface>>(&xdg_shell->events.new_surface);
 	_newSurfaceHandler->addHandler(std::bind(&XDGShell::onNewSurface, this, std::placeholders::_1));
+
 	_surfaceRequestMove = CreateRef<EventSignal<Ref<View>>>();
+}
+
+XDGShell::~XDGShell() {
+	for (auto view : views) {
+		view->requestClose();
+	}
 }
 
 void XDGShell::onNewSurface(wlr_xdg_surface* xdg_surface) {
@@ -20,21 +28,21 @@ void XDGShell::onNewSurface(wlr_xdg_surface* xdg_surface) {
 	auto view = CreateRef<View>(xdg_surface);
 
 	views.push_front(view);
-	view->surfaceDestroyed()->addHandler([view, this] (void* _) {
+	view->surfaceDestroyed()->addHandler([view, this] ([[maybe_unused]] void* _) {
 		views.remove(view);
 	});
 
-	view->surfaceRequestMove()->addHandler([view, this] (void* _) mutable {
+	view->surfaceRequestMove()->addHandler([view, this] ([[maybe_unused]] void* _) mutable {
 		_surfaceRequestMove->signalEvent(view);
 	});
 
 	clearActivated();
-	view->activate();
+	view->focus();
 }
 
 void XDGShell::renderViews(timespec when, wlr_output* output, wlr_output_layout* layout, wlr_renderer* renderer) {
 	for (auto& view : std::ranges::reverse_view(views)) {
-		if (view->is_mapped()) {
+		if (view->isMapped()) {
 			view->render(when, output, layout, renderer);
 		}
 	}
@@ -81,8 +89,8 @@ std::optional<Ref<View>> XDGShell::topView() {
 
 void XDGShell::clearActivated() {
 	for (auto view : views) {
-		if (view->isActivated()) {
-			view->deactivate();
+		if (view->isFocused()) {
+			view->defocus();
 		}
 	}
 }

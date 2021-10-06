@@ -11,20 +11,21 @@ public:
 		return other.uid == uid;
 	}
 
-	inline bool is_mapped() { return mapped; }
+	inline bool isMapped() { return mapped; }
 	int x() const { return _x; }
 	int y() const { return _y; }
-	inline bool isActivated() { return activated;	}
+	inline bool isFocused() { return activated;	}
 
 	wlr_surface* getSurface() { return xdg_surface->surface; }
 	wlr_xdg_surface* getXDGSurface() { return xdg_surface; }
 
 	void render(timespec when, wlr_output* output, wlr_output_layout* layout, wlr_renderer* renderer);
 	bool hasSurfaceAt(double lx, double ly, wlr_surface** surface, double* sx, double* sy);
-	void activate();
-	void deactivate();
+	void focus();
+	void defocus();
 	void move(int x, int y);
 	void move (double x, double y);
+	void requestClose();
 
 	Ref<EventHandler<void*>> surfaceDestroyed() { return _surfaceDestroyed; }
 	Ref<EventHandler<void*>> surfaceRequestMove() { return _surfaceRequestMove; }

@@ -1,8 +1,8 @@
 #pragma once
 
 #include "wl-roots-includes.h"
-#include "util.h"
 #include "event_handler.h"
+#include "util.h"
 
 class Keyboard {
 public:

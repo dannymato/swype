@@ -1,11 +1,12 @@
-#include <exception>
-#include <iostream>
 #include "wl-roots-includes.h"
 #include "server.h"
+
+#include <exception>
+#include <iostream>
 #define PROJECT_NAME "swipe"
 
 
-int main(int argc, char **argv) {
+int main() {
     wlr_log_init(WLR_DEBUG, nullptr);
     try {
         auto server = Server();

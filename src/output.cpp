@@ -1,9 +1,7 @@
-#include <iostream>
-#include <ctime>
 #include "output.h"
 #include "event_helper.h"
 
-Output::Output(wlr_output* output) 
+Output::Output(wlr_output* output)
 : output(output) {
 	_destroyed = CreateRef<EventHandler<wlr_output>>(&output->events.destroy);
 	_frame = CreateRef<EventHandler<wlr_output>>(&output->events.frame);
@@ -15,8 +13,14 @@ void Output::render(wlr_renderer* renderer, std::function<void()> renderAction) 
 	auto &[width, height] = effectiveResolution();
 	wlr_renderer_begin(renderer, width, height);
 
+	// Set the clear color
+	const float color[4] = {0.3, 0.3, 0.3, 1.0};
+	wlr_renderer_clear(renderer, color);
+
+	// Calling function can do whatever they want to the view here
 	renderAction();
 
+	// Won't do anything if hardware cursors are available
 	wlr_output_render_software_cursors(output, nullptr);
 	wlr_renderer_end(renderer);
 	wlr_output_commit(output);

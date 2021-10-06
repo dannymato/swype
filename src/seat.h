@@ -1,9 +1,9 @@
 #pragma once
 #include "wl-roots-includes.h"
-#include "util.h"
 #include "cursor.h"
-#include "keyboard.h"
 #include "event_handler.h"
+#include "keyboard.h"
+#include "util.h"
 #include "view.h"
 
 class SeatRequestSetCursorEvent

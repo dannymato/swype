@@ -18,8 +18,6 @@ public:
 	~Server();
 
 	void run();
-
-	friend class EventHandler<void>;
 private:
 	void newOutputCallback(void* data);
 	void outputDestroyedCallback(wlr_output* wl_output);

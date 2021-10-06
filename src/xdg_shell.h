@@ -1,22 +1,21 @@
 #pragma once
 
 #include "wl-roots-includes.h"
-#include "view.h"
-#include "event_helper.h"
+#include "cursor.h"
 #include "display.h"
 #include "event_handler.h"
+#include "event_helper.h"
 #include "event_signal.h"
-#include "cursor.h"
+#include "view.h"
 
 #include <list>
 #include <memory>
 #include <optional>
 
-class View;
-
 class XDGShell {
 public:
 	XDGShell(Display* display);
+	~XDGShell();
 
 	void removeView(Ref<View> view);
 	void renderViews(timespec when, wlr_output* output, wlr_output_layout* layout, wlr_renderer* renderer);
@@ -29,7 +28,6 @@ public:
 	Ref<EventSignal<Ref<View>>> surfaceRequestMove() { return _surfaceRequestMove; }
 	Ref<EventHandler<wlr_xdg_surface>> newSurfaceHandler() { return _newSurfaceHandler; }
 
-	friend class EventHandler<void*>;
 private:
 	void onNewSurface(wlr_xdg_surface* data);
 

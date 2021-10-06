@@ -1,4 +1,5 @@
 #include "cursor.h"
+
 #include "util.h"
 
 Cursor::Cursor(wlr_output_layout* layout) {
@@ -7,7 +8,7 @@ Cursor::Cursor(wlr_output_layout* layout) {
 
 	xcursor_manager = wlr_xcursor_manager_create(nullptr, 24);
 	wlr_xcursor_manager_load(xcursor_manager, 1);
-	
+
 	_motionHandler = CreateRef<EventHandler<PointerMotionEvent>>(&cursor->events.motion);
 	_absoluteMotionHandler = CreateRef<EventHandler<AbsolutePointerMotionEvent>>(&cursor->events.motion_absolute);
 	_buttonHandler = CreateRef<EventHandler<PointerButtonEvent>>(&cursor->events.button);

@@ -171,9 +171,6 @@ void Server::outputRenderCallback(wlr_output* wl_output) {
 	clock_gettime(CLOCK_MONOTONIC, &now);
 
 	rendering_out.render(renderer, [this, now, wl_output] {
-		const float color[4] = {0.3, 0.3, 0.3, 1.0};
-		wlr_renderer_clear(renderer, color);
-
 		shell->renderViews(now, wl_output, layout, renderer);
 	});
 }
@@ -219,13 +216,16 @@ bool Server::handleKeybindings(xkb_keysym_t sym) {
 		// Just for now but will hopefully by configurable
 		Command::Exec("konsole");
 		break;
+	case XKB_KEY_d:
+		Command::Exec("wofi", "--show", "drun");
+		break;
 	default:
 		return false;
 	}
 	return true;
 }
 
-void Server::handleModifiers(const Keyboard& keyboard, void* nothing) {
+void Server::handleModifiers(const Keyboard& keyboard, [[maybe_unused]]void* nothing) {
 	seat->notifyModifiers(&keyboard.getDevice()->keyboard->modifiers);
 }
 
